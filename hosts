@@ -1,0 +1,2 @@
+[production]
+nickname=production vm=0 branch=master
