@@ -1,17 +1,19 @@
 ---
 - hosts: ninkynonk
   vars:
-    http_port: 80
-    max_clients: 200
-    project: active_sky
+    project: activ_sky
     ruby_compiler: ruby
     ruby_version: 2.1.1
   remote_user: user
   sudo: true
   tasks:
-  - name: Create active_sky user
+  - name: Create activ_sky user
     # Use python passlib
-    action: user name=active_sky update_password=always groups=sudo password=$6$rounds=100000$X0dLo4kO5Wur4Kfv$7BUHaKBeW0fs5ElMBwDrVehSkLTHLGwOwb1DNZMU5CxRh8ZxlIXYw7rPFWeO5/fMgAPHIJJjvf2tdyJ5hOq44.
+    action: user name=activ_sky
+            update_password=always
+            groups=sudo
+            shell=bash
+            password=$6$rounds=100000$X0dLo4kO5Wur4Kfv$7BUHaKBeW0fs5ElMBwDrVehSkLTHLGwOwb1DNZMU5CxRh8ZxlIXYw7rPFWeO5/fMgAPHIJJjvf2tdyJ5hOq44.
   - name: Install necessary packages
     apt: pkg={{ item }} state=latest
     with_items:
@@ -31,12 +33,17 @@
   - name: Install ruby-install
     sudo: yes
     shell: "cd /home/{{ansible_ssh_user}}/ruby-install-0.4.1; make install"
+  # PROJECT SPECIFIC - need to be split
   # Install on project's user directory - probably need to install ruby global as well?
-  - name: "Install Ruby"
+  - name: Install Ruby
     sudo: yes
-    sudo_user: active_sky
+    sudo_user: activ_sky
     shell: /usr/local/bin/ruby-install {{ruby_compiler}} {{ruby_version}} creates=~/.rubies/{{ruby_version}}
     when: ruby_compiler is defined
+  - name: Add ruby to path
+  - name: Use chruby
+  - name: Setup postgres user for activ_sky
+  - name: Deploy app for the first time
 
 # Install nginx - not necessary
 # Links:
