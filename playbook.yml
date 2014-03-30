@@ -3,7 +3,6 @@
   vars:
     http_port: 80
     max_clients: 200
-    ruby_version: 2.1.1
     project: active_sky
   remote_user: user
   sudo: true
@@ -11,7 +10,16 @@
   - name: Create active_sky user
     # Use python passlib
     action: user name=active_sky update_password=always password=$6$rounds=100000$X0dLo4kO5Wur4Kfv$7BUHaKBeW0fs5ElMBwDrVehSkLTHLGwOwb1DNZMU5CxRh8ZxlIXYw7rPFWeO5/fMgAPHIJJjvf2tdyJ5hOq44.
-  # Stolen from https://github.com/hatoishi/ansible-dev/blob/master/ruby-install/tasks/main.yml
+  - name: Install necessary packages
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - build-essential
+      - git
+  - name: Install postgres
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - postgresql
+      - libpq-dev
   - name: Download ruby-install
     get_url:
       url: https://github.com/postmodern/ruby-install/archive/v0.4.1.tar.gz
@@ -20,10 +28,19 @@
     shell: tar -xzvf ruby-install-0.4.1.tar.gz
   - name: Install ruby-install
     sudo: yes
-    # command: make install chdir=/home/{{ansible_ssh_user}}/ruby-install-0.4.1 creates=/usr/local/bin/ruby-install
     shell: "cd /home/{{ansible_ssh_user}}/ruby-install-0.4.1; make install"
-  - name: Install Ruby {{ruby}}
+
+- hosts: ninkynonk
+  vars:
+    ruby_compiler: ruby
+    ruby_version: 2.1.1
     sudo: yes
-    sudo_user: "{{project}}"
-    shell: /usr/local/bin/ruby-install {{ruby}} creates=~/.rubies/{{ruby}}
-    when: ruby is defined
+    sudo_user: active_sky
+  # Install on project's user directory - probably need to install ruby global as well?
+  - name: Install Ruby {{ruby_compiler}} {{ruby_version}}
+    shell: /usr/local/bin/ruby-install {{ruby_compiler}} {{ruby_version}} creates=~/.rubies/{{ruby_version}}
+    when: ruby_compiler is defined
+
+# Install nginx - not necessary
+# Links:
+# https://github.com/hatoishi/ansible-dev/blob/master/ruby-install/tasks/main.yml
