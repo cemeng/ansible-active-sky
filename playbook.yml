@@ -1,19 +1,31 @@
 ---
-- hosts: ninkynonk
+- hosts: upsydaisy
   vars:
     project: activ_sky
+    admin_user: felixt
+    project_user: activ_sky
     ruby_compiler: ruby
     ruby_version: 2.1.1
-  remote_user: user
+  remote_user: root
   sudo: true
   tasks:
-  - name: Create activ_sky user
-    # Use python passlib
-    action: user name=activ_sky
+  - name: "Create admin user: {{admin_user}}"
+    action: "user name={{admin_user}}
             update_password=always
             groups=sudo
-            shell=bash
-            password=$6$rounds=100000$X0dLo4kO5Wur4Kfv$7BUHaKBeW0fs5ElMBwDrVehSkLTHLGwOwb1DNZMU5CxRh8ZxlIXYw7rPFWeO5/fMgAPHIJJjvf2tdyJ5hOq44.
+            shell=/bin/bash
+            password=$6$rounds=100000$mqWi51/Z5uaL496H$5Jkl8TC9f4Lhyx2KiSYBvGQ5Sn1Q25oYO.rUlHRhfALNganalEjyMlfk/Mdx5O5OZHL5RmobuHgJ3dN8VdsH60"
+  - name: "Create project user: {{project_user}}"
+    action: "user name={{project_user}}
+            update_password=always
+            groups=sudo
+            shell=/bin/bash
+            password=$6$rounds=100000$X0dLo4kO5Wur4Kfv$7BUHaKBeW0fs5ElMBwDrVehSkLTHLGwOwb1DNZMU5CxRh8ZxlIXYw7rPFWeO5/fMgAPHIJJjvf2tdyJ5hOq44."
+  # Requires ability to enter password
+  # name: Copy ssh for activ_sky
+  # shell:  ssh-copy-id {{project}}@{{ansible_hostname}}
+  - name: Update apt
+    apt: update_cache=yes cache_valid_time=3600
   - name: Install necessary packages
     apt: pkg={{ item }} state=latest
     with_items:
@@ -25,26 +37,30 @@
       - postgresql
       - libpq-dev
   - name: Download ruby-install
+    sudo: yes
+    sudo_user: "{{admin_user}}"
     get_url:
       url: https://github.com/postmodern/ruby-install/archive/v0.4.1.tar.gz
-      dest: /home/{{ansible_ssh_user}}/ruby-install-0.4.1.tar.gz
+      dest: /home/{{admin_user}}/ruby-install-0.4.1.tar.gz
   - name: Extract ruby-install
+    sudo: yes
+    sudo_user: "{{admin_user}}"
     shell: tar -xzvf ruby-install-0.4.1.tar.gz
   - name: Install ruby-install
     sudo: yes
-    shell: "cd /home/{{ansible_ssh_user}}/ruby-install-0.4.1; make install"
+    shell: "cd /home/{{admin_user}}/ruby-install-0.4.1; make install"
   # PROJECT SPECIFIC - need to be split
   # Install on project's user directory - probably need to install ruby global as well?
   - name: Install Ruby
     sudo: yes
-    sudo_user: activ_sky
+    sudo_user: "{{project_user}}"
     shell: /usr/local/bin/ruby-install {{ruby_compiler}} {{ruby_version}} creates=~/.rubies/{{ruby_version}}
     when: ruby_compiler is defined
-  - name: Add ruby to path
-  - name: Use chruby
-  - name: Setup postgres user for activ_sky
-  - name: Deploy app for the first time
+  # name: Add ruby to path
+  # name: Use chruby
+  # name: Setup postgres user for activ_sky
+  # name: Deploy app for the first time
 
-# Install nginx - not necessary
 # Links:
 # https://github.com/hatoishi/ansible-dev/blob/master/ruby-install/tasks/main.yml
+# Needed to set sudoers nopasswd beforehand
