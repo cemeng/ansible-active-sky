@@ -1,0 +1,5 @@
+- name: Install Ruby
+  sudo: yes
+  sudo_user: "{{project_user}}"
+  shell: /usr/local/bin/ruby-install {{ruby_compiler}} {{ruby_version}} creates=~/.rubies/{{ruby_version}}
+  when: install_ruby

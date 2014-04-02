@@ -6,6 +6,7 @@
     project_user: activ_sky
     ruby_compiler: ruby
     ruby_version: 2.1.1
+    install_ruby: false
   remote_user: root
   sudo: true
   tasks:
@@ -25,7 +26,7 @@
   # name: Copy ssh for activ_sky
   # shell:  ssh-copy-id {{project}}@{{ansible_hostname}}
   - name: Update apt
-    apt: update_cache=yes cache_valid_time=3600
+    apt: update_cache=yes cache_valid_time=144000
   - name: Install necessary packages
     apt: pkg={{ item }} state=latest
     with_items:
@@ -36,6 +37,7 @@
     with_items:
       - postgresql
       - libpq-dev
+      - python-psycopg2 # needed for postgresql ansible commands
   - name: Download ruby-install
     sudo: yes
     sudo_user: "{{admin_user}}"
@@ -51,11 +53,8 @@
     shell: "cd /home/{{admin_user}}/ruby-install-0.4.1; make install"
   # PROJECT SPECIFIC - need to be split
   # Install on project's user directory - probably need to install ruby global as well?
-  - name: Install Ruby
-    sudo: yes
-    sudo_user: "{{project_user}}"
-    shell: /usr/local/bin/ruby-install {{ruby_compiler}} {{ruby_version}} creates=~/.rubies/{{ruby_version}}
-    when: ruby_compiler is defined
+  - include: tasks/ruby.yml
+  - include: tasks/postgres.yml
   # name: Add ruby to path
   # name: Use chruby
   # name: Setup postgres user for activ_sky

@@ -1,0 +1,8 @@
+- name: Postgres - create {{project}} database
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: name={{project}}
+- name: Postgres - create user {{project}}
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: db={{project}} name={{project}} password=md522c6b37f0b3e41794edb9a8c24e6fa39. priv=ALL
